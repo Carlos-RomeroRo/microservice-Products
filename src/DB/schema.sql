@@ -1,0 +1,7 @@
+CREATE TABLE producto(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(200) NOT NULL,
+    price VARCHAR(200) NOT NULL,
+    stock INTEGER NOT NULL
+)
