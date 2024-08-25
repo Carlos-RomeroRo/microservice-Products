@@ -1,5 +1,13 @@
 package com.universidadDelMagdalena.Service;
 
-public interface ProductoService {
+import java.util.Optional;
 
+import com.universidadDelMagdalena.Entities.Producto;
+import com.universidadDelMagdalena.dto.ProductoDTO;
+
+public interface ProductoService {
+    Optional<Producto> getProductById(Long id);
+    Producto saveProduct(Producto producto);
+    Producto updateProduct(Long id, Producto detallesProducto);
+    void deleteProductById(Long id);
 }
