@@ -3,7 +3,7 @@ package com.universidadDelMagdalena.Service;
 import java.util.Optional;
 
 import com.universidadDelMagdalena.Entities.Producto;
-import com.universidadDelMagdalena.dto.ProductoDTO;
+
 
 public interface ProductoService {
     Optional<Producto> getProductById(Long id);
