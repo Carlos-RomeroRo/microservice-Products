@@ -1,9 +1,6 @@
 package com.universidadDelMagdalena.Controllers;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.universidadDelMagdalena.Entities.Producto;
 import com.universidadDelMagdalena.Service.ProductoService;
+import com.universidadDelMagdalena.dto.ProductoDTO;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/products")
@@ -28,45 +27,50 @@ public class ProductoController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable("id") Long id) { // debo especificar el parametro (ya
                                                                            // funciona)
-
-        if (productoService.getProductById(id).isPresent()) {
+        try {
             return ResponseEntity.status(HttpStatus.OK).body(productoService.getProductById(id));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ha ocurrido un error inesperado.");
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La ID no fue encontrada: " + id);
     }
 
     @PostMapping
-    public ResponseEntity<?> postProduct(@RequestBody Producto producto) { // ya funciona
+    public ResponseEntity<?> postProduct(@RequestBody ProductoDTO productoDTO) { // ya funciona
         try {
-            productoService.saveProduct(producto);
+            productoService.saveProduct(productoDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body("El producto ha sido guardado.");
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("El producto con ese ID ya existe.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage()); // error 422
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> putProductById(@PathVariable("id") Long id, @RequestBody Producto detallesproducto) { // funciona
-                                                                                                                   // //
-                                                                                                                   // //
-        // FUNCIONA
-        Optional<Producto> optionalProducto = productoService.getProductById(id);
-        if (optionalProducto.isPresent()) {
+    public ResponseEntity<?> putProductById(@PathVariable("id") Long id, @RequestBody ProductoDTO detallesproducto) {
+        try {
             productoService.updateProduct(id, detallesproducto);
             return ResponseEntity.status(HttpStatus.OK).body("Se ha podido actualizar el producto con la ID: " + id);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
+        } catch (Exception EntityNotFoundException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(EntityNotFoundException.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La ID no fue encontrada: " + id);
+
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProductById(@PathVariable("id") long id) { // ya funciona (202)
-        Optional<Producto> producto = productoService.getProductById(id);
-        if (producto.isPresent()) {
+        try {
             productoService.deleteProductById(id);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                    .body("Se ha podido eliminar el producto con la ID: " + id);
+            return ResponseEntity.status(HttpStatus.OK).body("Se ha podido eliminar el producto con la ID: " + id);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La ID no fue encontrada: " + id);
     }
 
 }
